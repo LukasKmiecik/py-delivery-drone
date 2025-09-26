@@ -3,35 +3,30 @@ class Cargo:
         self.weight = weight
 
 
-# write your code here
 class BaseRobot:
     def __init__(
-            self,
-            name: str,
-            weight: float,
-            coords: list | None = None
+        self,
+        name: str,
+        weight: float,
+        coords: list[int] | None = None,
     ) -> None:
-        self.name = name
-        self.weight = weight
         if coords is None:
             coords = [0, 0]
+        self.name = name
+        self.weight = weight
         self.coords = coords
 
     def go_forward(self, step: int = 1) -> None:
         self.coords[1] += step
-        print(self.coords)
 
     def go_back(self, step: int = 1) -> None:
         self.coords[1] -= step
-        print(self.coords)
 
     def go_left(self, step: int = 1) -> None:
         self.coords[0] -= step
-        print(self.coords)
 
     def go_right(self, step: int = 1) -> None:
         self.coords[0] += step
-        print(self.coords)
 
     def get_info(self) -> str:
         return f"Robot: {self.name}, Weight: {self.weight}"
@@ -39,43 +34,51 @@ class BaseRobot:
 
 class FlyingRobot(BaseRobot):
     def __init__(
-            self,
-            name: str,
-            weight: float,
-            coords: list | None = None
+        self,
+        name: str,
+        weight: float,
+        coords: list[int] | None = None,
     ) -> None:
         if coords is None:
             coords = [0, 0, 0]
-        super().__init__(name, weight, coords)
+
+        parent_coords = coords[:2]
+        super().__init__(name, weight, parent_coords)
+
+        if len(coords) == 2:
+            self.coords = coords + [0]
+        else:
+            self.coords = coords
 
     def go_up(self, step: int = 1) -> None:
         self.coords[2] += step
-        print(self.coords)
 
     def go_down(self, step: int = 1) -> None:
         self.coords[2] -= step
-        print(self.coords)
 
 
 class DeliveryDrone(FlyingRobot):
     def __init__(
-            self,
-            name: str,
-            weight: float,
-            coords: list | None = None,
-            max_load_weight: float = 0.0,
-            current_load: Cargo = None
+        self,
+        name: str,
+        weight: float,
+        coords: list[int] | None = None,
+        max_load_weight: float = 0.0,
+        current_load: Cargo | None = None,
     ) -> None:
         if coords is None:
             coords = [0, 0, 0]
         super().__init__(name, weight, coords)
-        self.max_load_weight = max_load_weight
-        self.current_load = current_load
 
-    def hook_load(self, cargo: float) -> None:
-        if self.current_load is None:
-            if cargo.weight <= self.max_load_weight:
-                self.current_load = cargo
+        self.max_load_weight = max_load_weight
+        self.current_load: Cargo | None = None
+
+        if current_load is not None:
+            self.hook_load(current_load)
+
+    def hook_load(self, cargo: Cargo) -> None:
+        if self.current_load is None and cargo.weight <= self.max_load_weight:
+            self.current_load = cargo
 
     def unhook_load(self) -> None:
         self.current_load = None
